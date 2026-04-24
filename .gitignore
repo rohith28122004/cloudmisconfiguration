@@ -30,8 +30,8 @@ Thumbs.db
 # Temp scan data (generated at runtime)
 /tmp/
 
-# Data directory (runtime generated)
-data/*.json
+# Temp scan results only
+/tmp/*.json
 
 # ML models (if too large)
 # ml/*.pkl

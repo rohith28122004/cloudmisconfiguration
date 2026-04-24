@@ -1,0 +1,247 @@
+{
+  "rules": [
+    {
+      "id": "S3_PUBLIC_ACCESS",
+      "resource_type": "S3_Bucket",
+      "name": "S3 Bucket Public Access",
+      "description": "S3 bucket allows public access which may expose sensitive data",
+      "condition": "properties.public_access == true",
+      "severity": "HIGH",
+      "category": "Data Exposure"
+    },
+    {
+      "id": "S3_NO_ENCRYPTION",
+      "resource_type": "S3_Bucket",
+      "name": "S3 Bucket Without Encryption",
+      "description": "S3 bucket does not have server-side encryption enabled",
+      "condition": "properties.encryption == false",
+      "severity": "HIGH",
+      "category": "Encryption"
+    },
+    {
+      "id": "S3_NO_VERSIONING",
+      "resource_type": "S3_Bucket",
+      "name": "S3 Bucket Without Versioning",
+      "description": "S3 bucket does not have versioning enabled for data protection",
+      "condition": "properties.versioning == false",
+      "severity": "MEDIUM",
+      "category": "Data Protection"
+    },
+    {
+      "id": "S3_NO_LOGGING",
+      "resource_type": "S3_Bucket",
+      "name": "S3 Bucket Without Access Logging",
+      "description": "S3 bucket does not have access logging enabled",
+      "condition": "properties.logging == false",
+      "severity": "MEDIUM",
+      "category": "Logging"
+    },
+    {
+      "id": "EC2_PUBLIC_IP",
+      "resource_type": "EC2_Instance",
+      "name": "EC2 Instance with Public IP",
+      "description": "EC2 instance has a public IP address assigned",
+      "condition": "properties.public_ip == true",
+      "severity": "MEDIUM",
+      "category": "Network Exposure"
+    },
+    {
+      "id": "EC2_OPEN_SECURITY_GROUP",
+      "resource_type": "EC2_Instance",
+      "name": "EC2 with Open Security Group",
+      "description": "EC2 instance has overly permissive security group rules",
+      "condition": "properties.security_group_open == true",
+      "severity": "HIGH",
+      "category": "Network Exposure"
+    },
+    {
+      "id": "EC2_NO_IMDSV2",
+      "resource_type": "EC2_Instance",
+      "name": "EC2 Instance Not Using IMDSv2",
+      "description": "EC2 instance is not enforcing IMDSv2 for metadata service",
+      "condition": "properties.imdsv2_enforced == false",
+      "severity": "MEDIUM",
+      "category": "Instance Security"
+    },
+    {
+      "id": "EC2_NO_EBS_ENCRYPTION",
+      "resource_type": "EC2_Instance",
+      "name": "EC2 EBS Volumes Not Encrypted",
+      "description": "EC2 instance EBS volumes are not encrypted",
+      "condition": "properties.ebs_encryption == false",
+      "severity": "HIGH",
+      "category": "Encryption"
+    },
+    {
+      "id": "RDS_PUBLIC_ACCESS",
+      "resource_type": "RDS_Instance",
+      "name": "RDS Instance Publicly Accessible",
+      "description": "RDS database instance is publicly accessible from the internet",
+      "condition": "properties.publicly_accessible == true",
+      "severity": "CRITICAL",
+      "category": "Data Exposure"
+    },
+    {
+      "id": "RDS_NO_ENCRYPTION",
+      "resource_type": "RDS_Instance",
+      "name": "RDS Instance Without Encryption",
+      "description": "RDS database does not have encryption at rest enabled",
+      "condition": "properties.encryption_at_rest == false",
+      "severity": "HIGH",
+      "category": "Encryption"
+    },
+    {
+      "id": "RDS_NO_MULTI_AZ",
+      "resource_type": "RDS_Instance",
+      "name": "RDS Without Multi-AZ",
+      "description": "RDS instance does not have Multi-AZ deployment for high availability",
+      "condition": "properties.multi_az == false",
+      "severity": "MEDIUM",
+      "category": "Availability"
+    },
+    {
+      "id": "RDS_NO_BACKUP",
+      "resource_type": "RDS_Instance",
+      "name": "RDS Without Backup Retention",
+      "description": "RDS instance has backup retention set to 0 days",
+      "condition": "properties.backup_retention == 0",
+      "severity": "HIGH",
+      "category": "Data Protection"
+    },
+    {
+      "id": "RDS_NO_SSL",
+      "resource_type": "RDS_Instance",
+      "name": "RDS Without SSL Enforcement",
+      "description": "RDS instance does not enforce SSL for connections",
+      "condition": "properties.ssl_enforced == false",
+      "severity": "HIGH",
+      "category": "Encryption"
+    },
+    {
+      "id": "IAM_NO_MFA",
+      "resource_type": "IAM_User",
+      "name": "IAM User Without MFA",
+      "description": "IAM user does not have Multi-Factor Authentication enabled",
+      "condition": "properties.mfa_enabled == false",
+      "severity": "CRITICAL",
+      "category": "Identity"
+    },
+    {
+      "id": "IAM_OLD_ACCESS_KEY",
+      "resource_type": "IAM_User",
+      "name": "IAM User with Old Access Key",
+      "description": "IAM user has access key older than 90 days",
+      "condition": "properties.access_key_age_days > 90",
+      "severity": "MEDIUM",
+      "category": "Identity"
+    },
+    {
+      "id": "IAM_ADMIN_NO_MFA",
+      "resource_type": "IAM_User",
+      "name": "Admin User Without MFA",
+      "description": "IAM user with admin access does not have MFA enabled",
+      "condition": "properties.admin_access == true and properties.mfa_enabled == false",
+      "severity": "CRITICAL",
+      "category": "Identity"
+    },
+    {
+      "id": "SG_OPEN_TO_WORLD",
+      "resource_type": "Security_Group",
+      "name": "Security Group Open to 0.0.0.0/0",
+      "description": "Security group allows inbound traffic from any IP address",
+      "condition": "properties.open_to_0_0_0_0 == true",
+      "severity": "HIGH",
+      "category": "Network Exposure"
+    },
+    {
+      "id": "SG_SSH_OPEN",
+      "resource_type": "Security_Group",
+      "name": "SSH Open to Internet",
+      "description": "Security group allows SSH (port 22) from the internet",
+      "condition": "properties.allows_ssh_from_internet == true",
+      "severity": "CRITICAL",
+      "category": "Network Exposure"
+    },
+    {
+      "id": "LAMBDA_NO_VPC",
+      "resource_type": "Lambda_Function",
+      "name": "Lambda Not in VPC",
+      "description": "Lambda function is not attached to a VPC",
+      "condition": "properties.vpc_attached == false",
+      "severity": "MEDIUM",
+      "category": "Network Security"
+    },
+    {
+      "id": "LAMBDA_OVERPRIVILEGED",
+      "resource_type": "Lambda_Function",
+      "name": "Lambda with Overprivileged Role",
+      "description": "Lambda function execution role has excessive permissions",
+      "condition": "properties.execution_role_overprivileged == true",
+      "severity": "HIGH",
+      "category": "Least Privilege"
+    },
+    {
+      "id": "LAMBDA_ENV_NOT_ENCRYPTED",
+      "resource_type": "Lambda_Function",
+      "name": "Lambda Environment Variables Not Encrypted",
+      "description": "Lambda function environment variables are not encrypted with KMS",
+      "condition": "properties.env_vars_encrypted == false",
+      "severity": "MEDIUM",
+      "category": "Encryption"
+    },
+    {
+      "id": "KMS_NO_ROTATION",
+      "resource_type": "KMS_Key",
+      "name": "KMS Key Without Rotation",
+      "description": "KMS key does not have automatic rotation enabled",
+      "condition": "properties.rotation_enabled == false",
+      "severity": "MEDIUM",
+      "category": "Encryption"
+    },
+    {
+      "id": "CLOUDTRAIL_NO_VALIDATION",
+      "resource_type": "CloudTrail",
+      "name": "CloudTrail Without Log Validation",
+      "description": "CloudTrail does not have log file validation enabled",
+      "condition": "properties.log_file_validation == false",
+      "severity": "MEDIUM",
+      "category": "Logging"
+    },
+    {
+      "id": "CLOUDTRAIL_NOT_ENCRYPTED",
+      "resource_type": "CloudTrail",
+      "name": "CloudTrail Logs Not Encrypted",
+      "description": "CloudTrail logs are not encrypted with KMS",
+      "condition": "properties.kms_encrypted == false",
+      "severity": "MEDIUM",
+      "category": "Encryption"
+    },
+    {
+      "id": "ELB_NO_LOGGING",
+      "resource_type": "Load_Balancer",
+      "name": "Load Balancer Without Access Logging",
+      "description": "Load balancer does not have access logging enabled",
+      "condition": "properties.access_logging == false",
+      "severity": "MEDIUM",
+      "category": "Logging"
+    },
+    {
+      "id": "ELB_NO_WAF",
+      "resource_type": "Load_Balancer",
+      "name": "Load Balancer Without WAF",
+      "description": "Load balancer does not have Web Application Firewall enabled",
+      "condition": "properties.waf_enabled == false",
+      "severity": "HIGH",
+      "category": "Web Security"
+    },
+    {
+      "id": "ELB_NO_HTTPS_REDIRECT",
+      "resource_type": "Load_Balancer",
+      "name": "Load Balancer Without HTTPS Redirect",
+      "description": "Load balancer does not redirect HTTP to HTTPS",
+      "condition": "properties.http_to_https_redirect == false",
+      "severity": "MEDIUM",
+      "category": "Encryption"
+    }
+  ]
+}

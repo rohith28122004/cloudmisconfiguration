@@ -1,0 +1,251 @@
+{
+    "frameworks": {
+        "RBI": {
+            "name": "RBI Cyber Security Framework",
+            "full_name": "Reserve Bank of India - Cyber Security Framework for Banks",
+            "penalty": "Up to ₹2 Crore per violation",
+            "rules": [
+                {
+                    "id": "RBI_01",
+                    "clause": "Cyber Security Policy 3.1",
+                    "requirement": "Banks must ensure data encryption at rest and in transit",
+                    "mapped_rules": [
+                        "S3_NO_ENCRYPTION",
+                        "RDS_NO_ENCRYPTION",
+                        "EC2_NO_EBS_ENCRYPTION",
+                        "RDS_NO_SSL"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "RBI_02",
+                    "clause": "Access Control 4.2",
+                    "requirement": "Multi-factor authentication for all privileged users",
+                    "mapped_rules": [
+                        "IAM_NO_MFA",
+                        "IAM_ADMIN_NO_MFA"
+                    ],
+                    "severity": "CRITICAL"
+                },
+                {
+                    "id": "RBI_03",
+                    "clause": "Network Security 5.1",
+                    "requirement": "Secure network architecture with proper segmentation",
+                    "mapped_rules": [
+                        "SG_OPEN_TO_WORLD",
+                        "SG_SSH_OPEN",
+                        "EC2_OPEN_SECURITY_GROUP"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "RBI_04",
+                    "clause": "Audit Logging 6.3",
+                    "requirement": "Comprehensive logging of all security events",
+                    "mapped_rules": [
+                        "S3_NO_LOGGING",
+                        "CLOUDTRAIL_NO_VALIDATION",
+                        "ELB_NO_LOGGING"
+                    ],
+                    "severity": "MEDIUM"
+                },
+                {
+                    "id": "RBI_05",
+                    "clause": "Data Protection 7.2",
+                    "requirement": "No public exposure of banking databases",
+                    "mapped_rules": [
+                        "RDS_PUBLIC_ACCESS",
+                        "S3_PUBLIC_ACCESS"
+                    ],
+                    "severity": "CRITICAL"
+                },
+                {
+                    "id": "RBI_06",
+                    "clause": "Business Continuity 8.1",
+                    "requirement": "Backup and disaster recovery mechanisms",
+                    "mapped_rules": [
+                        "RDS_NO_BACKUP",
+                        "RDS_NO_MULTI_AZ",
+                        "S3_NO_VERSIONING"
+                    ],
+                    "severity": "HIGH"
+                }
+            ]
+        },
+        "DPDP": {
+            "name": "DPDP Act 2023",
+            "full_name": "Digital Personal Data Protection Act 2023",
+            "penalty": "Up to ₹250 Crore for significant data breach",
+            "rules": [
+                {
+                    "id": "DPDP_01",
+                    "clause": "Section 8(3)",
+                    "requirement": "Reasonable security safeguards to prevent personal data breach",
+                    "mapped_rules": [
+                        "S3_NO_ENCRYPTION",
+                        "RDS_NO_ENCRYPTION",
+                        "EC2_NO_EBS_ENCRYPTION"
+                    ],
+                    "severity": "CRITICAL"
+                },
+                {
+                    "id": "DPDP_02",
+                    "clause": "Section 8(5)",
+                    "requirement": "Protection against unauthorized access to personal data",
+                    "mapped_rules": [
+                        "S3_PUBLIC_ACCESS",
+                        "RDS_PUBLIC_ACCESS",
+                        "SG_OPEN_TO_WORLD"
+                    ],
+                    "severity": "CRITICAL"
+                },
+                {
+                    "id": "DPDP_03",
+                    "clause": "Section 9",
+                    "requirement": "Data Principal notification in case of breach",
+                    "mapped_rules": [
+                        "CLOUDTRAIL_NO_VALIDATION",
+                        "CLOUDTRAIL_NOT_ENCRYPTED"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "DPDP_04",
+                    "clause": "Section 8(7)",
+                    "requirement": "Data erasure and storage limitation",
+                    "mapped_rules": [
+                        "RDS_NO_BACKUP",
+                        "S3_NO_VERSIONING"
+                    ],
+                    "severity": "MEDIUM"
+                },
+                {
+                    "id": "DPDP_05",
+                    "clause": "Section 17",
+                    "requirement": "Significant Data Fiduciary obligations for security",
+                    "mapped_rules": [
+                        "IAM_NO_MFA",
+                        "IAM_ADMIN_NO_MFA",
+                        "LAMBDA_OVERPRIVILEGED"
+                    ],
+                    "severity": "HIGH"
+                }
+            ]
+        },
+        "CERT_IN": {
+            "name": "CERT-In Rules 2022",
+            "full_name": "Indian Computer Emergency Response Team - Cyber Security Directions",
+            "penalty": "Imprisonment up to 1 year and/or fine",
+            "rules": [
+                {
+                    "id": "CERT_01",
+                    "clause": "Direction 4.i",
+                    "requirement": "Enable logs of all ICT systems and maintain for 180 days",
+                    "mapped_rules": [
+                        "S3_NO_LOGGING",
+                        "CLOUDTRAIL_NO_VALIDATION",
+                        "ELB_NO_LOGGING",
+                        "CLOUDTRAIL_NOT_ENCRYPTED"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "CERT_02",
+                    "clause": "Direction 4.ii",
+                    "requirement": "Report cyber security incidents within 6 hours",
+                    "mapped_rules": [
+                        "CLOUDTRAIL_NO_VALIDATION"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "CERT_03",
+                    "clause": "Direction 4.iii",
+                    "requirement": "Synchronize ICT system clocks and enable NTP",
+                    "mapped_rules": [],
+                    "severity": "MEDIUM"
+                },
+                {
+                    "id": "CERT_04",
+                    "clause": "Direction 5",
+                    "requirement": "Designate Point of Contact for cyber security",
+                    "mapped_rules": [],
+                    "severity": "LOW"
+                },
+                {
+                    "id": "CERT_05",
+                    "clause": "Direction 6",
+                    "requirement": "Maintain accurate subscriber/customer information",
+                    "mapped_rules": [
+                        "S3_PUBLIC_ACCESS",
+                        "RDS_PUBLIC_ACCESS"
+                    ],
+                    "severity": "MEDIUM"
+                }
+            ]
+        },
+        "IT_ACT": {
+            "name": "IT Act 2000",
+            "full_name": "Information Technology Act 2000 - Section 43A",
+            "penalty": "Compensation for wrongful loss",
+            "rules": [
+                {
+                    "id": "IT_01",
+                    "clause": "Section 43A",
+                    "requirement": "Reasonable security practices for sensitive personal data",
+                    "mapped_rules": [
+                        "S3_NO_ENCRYPTION",
+                        "RDS_NO_ENCRYPTION",
+                        "S3_PUBLIC_ACCESS",
+                        "RDS_PUBLIC_ACCESS"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "IT_02",
+                    "clause": "Section 43A + SPDI Rules 8",
+                    "requirement": "Security practices as per IS/ISO/IEC 27001",
+                    "mapped_rules": [
+                        "IAM_NO_MFA",
+                        "SG_OPEN_TO_WORLD",
+                        "SG_SSH_OPEN"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "IT_03",
+                    "clause": "Section 43",
+                    "requirement": "No unauthorized access to computer systems",
+                    "mapped_rules": [
+                        "EC2_OPEN_SECURITY_GROUP",
+                        "SG_SSH_OPEN",
+                        "RDS_PUBLIC_ACCESS"
+                    ],
+                    "severity": "CRITICAL"
+                },
+                {
+                    "id": "IT_04",
+                    "clause": "Section 66",
+                    "requirement": "Prevent computer-related offences through security",
+                    "mapped_rules": [
+                        "IAM_ADMIN_NO_MFA",
+                        "LAMBDA_OVERPRIVILEGED",
+                        "KMS_NO_ROTATION"
+                    ],
+                    "severity": "HIGH"
+                },
+                {
+                    "id": "IT_05",
+                    "clause": "Rule 8 - SPDI Rules",
+                    "requirement": "Implement and maintain reasonable security practices",
+                    "mapped_rules": [
+                        "EC2_NO_EBS_ENCRYPTION",
+                        "LAMBDA_ENV_NOT_ENCRYPTED",
+                        "CLOUDTRAIL_NOT_ENCRYPTED"
+                    ],
+                    "severity": "MEDIUM"
+                }
+            ]
+        }
+    }
+}
