@@ -213,7 +213,7 @@ class RemediationEngine:
             "S3_NO_ENCRYPTION": [
                 f"$ aws s3api get-bucket-encryption --bucket {resource_name}",
                 "  No encryption configuration found.",
-                f"$ aws s3api put-bucket-encryption --bucket {resource_name} \\\n    --server-side-encryption-configuration '{{\"Rules\":[{{\"ApplyServerSideEncryptionByDefault\":{{\"SSEAlgorithm\":\"AES256\"}}}}}]}}'",
+                f"$ aws s3api put-bucket-encryption --bucket {resource_name} \\\n    --server-side-encryption-configuration '{{\"Rules\":[{{\"ApplyServerSideEncryptionByDefault\":{{\"SSEAlgorithm\":\"AES256\"}}}}}}]}}'",
                 f"  ✓ AES-256 encryption enabled for: {resource_name}",
                 "  ✓ All new objects will be encrypted automatically"
             ],
