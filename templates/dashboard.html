@@ -262,7 +262,19 @@
 
     async function loadDashboard() {
         try {
-            const storedData = localStorage.getItem('scan_results');
+            let storedData = localStorage.getItem('scan_results');
+
+            // Version check: clear stale data that lacks ml_risk_score
+            if (storedData) {
+                const parsed = JSON.parse(storedData);
+                const sampleFindings = parsed.findings || parsed.scored_findings || [];
+                const isStale = sampleFindings.length > 0 && sampleFindings[0].ml_risk_score === undefined;
+                if (isStale) {
+                    console.log('[Dashboard] Stale localStorage data detected, clearing...');
+                    localStorage.removeItem('scan_results');
+                    storedData = null;
+                }
+            }
             if (storedData) {
                 dashboardData = JSON.parse(storedData);
 
