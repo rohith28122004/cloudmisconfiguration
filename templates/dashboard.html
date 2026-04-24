@@ -262,8 +262,31 @@
 
     async function loadDashboard() {
         try {
-            const response = await fetch('/api/dashboard-data');
-            dashboardData = await response.json();
+            const storedData = localStorage.getItem('scan_results');
+            if (storedData) {
+                dashboardData = JSON.parse(storedData);
+
+                // Ensure findings key exists
+                if (!dashboardData.findings && dashboardData.scored_findings) {
+                    dashboardData.findings = dashboardData.scored_findings.slice(0, 20);
+                } else if (!dashboardData.findings) {
+                    dashboardData.findings = [];
+                }
+            } else {
+                // localStorage empty — fetch fresh demo data from server
+                console.log('[Dashboard] No localStorage data, fetching from /api/demo-data...');
+                const response = await fetch('/api/demo-data');
+                if (!response.ok) throw new Error('Server error: ' + response.status);
+                const serverData = await response.json();
+
+                if (!serverData.success) throw new Error(serverData.error || 'Unknown error');
+
+                // Save to localStorage for next time
+                localStorage.setItem('scan_results', JSON.stringify(serverData));
+
+                dashboardData = serverData;
+                if (!dashboardData.findings) dashboardData.findings = dashboardData.scored_findings || [];
+            }
 
             updateStats();
             createCharts();
@@ -272,6 +295,13 @@
             renderResources();
         } catch (error) {
             console.error('Failed to load dashboard:', error);
+            document.querySelector('.main-content').innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:1rem;">
+                    <div style="font-size:3rem;">⚠️</div>
+                    <h2 style="color:var(--text-primary)">Dashboard data unavailable</h2>
+                    <p style="color:var(--text-secondary)">Error: ${error.message}</p>
+                    <a href="/scan" class="btn btn-primary">Run a New Scan</a>
+                </div>`;
         }
     }
 

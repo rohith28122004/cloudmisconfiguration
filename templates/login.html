@@ -384,6 +384,9 @@
             console.log('Upload response:', data);
 
             if (data.success) {
+                if (data.uploaded_config) {
+                    sessionStorage.setItem('uploaded_config', JSON.stringify(data.uploaded_config));
+                }
                 uploadBtn.innerHTML = '<span class="btn-icon">✅</span> ' + data.resources_count + ' resources found!';
                 setTimeout(() => {
                     window.location.href = data.redirect;

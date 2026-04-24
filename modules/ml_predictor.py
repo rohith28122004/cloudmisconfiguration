@@ -76,27 +76,18 @@ class MLRiskPredictor:
     
     def _initialize_ml_model(self):
         """Initialize and train Random Forest model."""
-        print("[ML] Initializing Random Forest ML model...")
-        
-        # Create Random Forest Regressor
+        # Use lightweight settings for serverless (Vercel 10s timeout)
         self.model = RandomForestRegressor(
-            n_estimators=100,  # 100 decision trees
-            max_depth=10,
+            n_estimators=10,   # 10 trees (was 100) — fast enough for serverless
+            max_depth=5,       # Shallow trees — still accurate
             random_state=42,
-            n_jobs=-1  # Use all CPU cores
+            n_jobs=1           # Single-threaded — safer on serverless
         )
         
-        # Create scaler for feature normalization
         self.scaler = StandardScaler()
-        
-        # Generate training data and train model
         X_train, y_train = self._generate_training_data()
         X_scaled = self.scaler.fit_transform(X_train)
         self.model.fit(X_scaled, y_train)
-        
-        print("[SUCCESS] Random Forest model trained successfully!")
-        print(f"   - Trees: {self.model.n_estimators}")
-        print(f"   - Training samples: {len(X_train)}")
     
     def _generate_training_data(self):
         """Generate synthetic training data for Random Forest."""

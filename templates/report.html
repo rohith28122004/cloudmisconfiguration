@@ -161,7 +161,18 @@
 <script>
     async function loadReport() {
         try {
-            const response = await fetch('/api/export-report');
+            const storedData = localStorage.getItem('scan_results');
+            if (!storedData) {
+                console.error('No scan results found');
+                window.location.href = '/dashboard';
+                return;
+            }
+
+            const response = await fetch('/api/export-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: storedData
+            });
             const data = await response.json();
 
             // Header info

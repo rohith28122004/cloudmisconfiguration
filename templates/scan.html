@@ -150,33 +150,51 @@
     }
 
     async function startScan() {
+        // Start simulated progress
+        let step = 0;
+        const interval = setInterval(() => {
+            const statusKeys = Object.keys(statusMessages);
+            if (step < statusKeys.length - 1) { // Don't reach 'complete' until fetch finishes
+                updateStatus(statusKeys[step]);
+                step++;
+            }
+        }, 800);
+
         try {
-            const response = await fetch('/api/start-scan', { method: 'POST' });
+            const uploadedConfigStr = sessionStorage.getItem('uploaded_config');
+            let bodyData = {};
+            if (uploadedConfigStr) {
+                bodyData.uploaded_config = JSON.parse(uploadedConfigStr);
+            }
+
+            const response = await fetch('/api/start-scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
             const data = await response.json();
 
-            if (data.success) {
-                // Scan started, poll for status
-                pollStatus();
+            clearInterval(interval);
+
+            if (data.success && data.scan_results) {
+                // Save fully stateless results to localStorage
+                localStorage.setItem('scan_results', JSON.stringify(data.scan_results));
+                
+                // Update final stats before redirect
+                const summary = data.scan_results.summary || {};
+                document.getElementById('resourceCount').textContent = summary.total_resources || 0;
+                document.getElementById('findingCount').textContent = summary.total_findings || 0;
+
+                updateStatus('complete');
+            } else {
+                document.querySelector('.status-text').textContent = 'Scan failed. Please try again.';
+                document.querySelector('.status-icon').textContent = '❌';
             }
         } catch (error) {
+            clearInterval(interval);
             console.error('Scan error:', error);
-        }
-    }
-
-    async function pollStatus() {
-        try {
-            const response = await fetch('/api/scan-status');
-            const data = await response.json();
-
-            updateStatus(data.status);
-            document.getElementById('resourceCount').textContent = data.resources_count || 0;
-            document.getElementById('findingCount').textContent = data.findings_count || 0;
-
-            if (data.status !== 'complete') {
-                setTimeout(pollStatus, 500);
-            }
-        } catch (error) {
-            console.error('Status error:', error);
+            document.querySelector('.status-text').textContent = 'Connection error. Please try again.';
+            document.querySelector('.status-icon').textContent = '❌';
         }
     }
 

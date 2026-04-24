@@ -85,6 +85,41 @@ def _save_uploaded(scan_id, data):
         json.dump(data, f)
 
 
+@app.route('/api/demo-data')
+def demo_data():
+    """Run a fresh in-memory demo scan and return all results. Always works on Vercel."""
+    try:
+        cloud_connector.connect()
+        resources = cloud_connector.fetch_resources()
+        cloud_info = cloud_connector.get_cloud_info()
+
+        findings = scanner_engine.scan_all_resources(resources)
+        scored_findings = ml_predictor.predict_all(findings)
+        compliance = compliance_mapper.map_findings_to_compliance(scored_findings)
+
+        summary = {
+            'total_resources': len(resources),
+            'total_findings': len(findings),
+            'risk_distribution': ml_predictor.get_risk_distribution(scored_findings),
+            'scanner_summary': scanner_engine.get_summary(),
+            'compliance_summary': compliance_mapper.get_overall_compliance(),
+            'cloud_info': cloud_info
+        }
+
+        return jsonify({
+            'success': True,
+            'status': 'complete',
+            'resources': resources,
+            'findings': scored_findings[:20],
+            'scored_findings': scored_findings,
+            'compliance': compliance,
+            'summary': summary,
+            'scan_mode': 'demo'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Routes
 # ─────────────────────────────────────────────────────────────────────────────
@@ -176,7 +211,8 @@ def upload_config():
             'success': True,
             'redirect': '/scan',
             'resources_count': len(resources),
-            'filename': file.filename
+            'filename': file.filename,
+            'uploaded_config': uploaded
         })
 
     except json.JSONDecodeError as e:
@@ -200,10 +236,11 @@ def start_scan():
     scan_results['status'] = 'connecting'
     _save_scan_results(scan_id, scan_results)
 
-    use_uploaded = scan_results.get('scan_mode') == 'uploaded'
-    uploaded = _load_uploaded(scan_id)
+    # Use uploaded config from frontend if provided
+    data = request.json or {}
+    uploaded = data.get('uploaded_config')
 
-    if use_uploaded and len(uploaded.get('resources', [])) > 0:
+    if uploaded and len(uploaded.get('resources', [])) > 0:
         scan_results['status'] = 'fetching'
         resources = uploaded['resources']
         cloud_info = uploaded['cloud_info']
@@ -243,7 +280,7 @@ def start_scan():
     scan_results['status'] = 'complete'
     _save_scan_results(scan_id, scan_results)
 
-    return jsonify({'success': True, 'redirect': '/dashboard'})
+    return jsonify({'success': True, 'redirect': '/dashboard', 'scan_results': scan_results})
 
 
 @app.route('/api/scan-status')
@@ -298,17 +335,23 @@ def get_compliance_detail(framework):
     return jsonify(framework_data)
 
 
-@app.route('/api/export-report')
+@app.route('/api/export-report', methods=['POST'])
 def export_report():
     """Export full report data for PDF generation."""
-    scan_id = _get_scan_id()
-    scan_results = _load_scan_results(scan_id)
+    data = request.json or {}
+    scored_findings = data.get('scored_findings', [])
+    summary = data.get('summary', {})
+    
+    # Run compliance mapping on the fly for stateless execution
+    compliance_mapper.map_findings_to_compliance(scored_findings)
     report = compliance_mapper.generate_compliance_report()
-    cloud_info = scan_results.get('summary', {}).get('cloud_info', {})
+    
+    cloud_info = summary.get('cloud_info', {})
+    
     return jsonify({
         'report': report,
-        'findings': scan_results.get('scored_findings', []),
-        'summary': scan_results.get('summary', {}),
+        'findings': scored_findings,
+        'summary': summary,
         'generated_at': time.strftime('%Y-%m-%d %H:%M:%S'),
         'cloud_info': cloud_info
     })
