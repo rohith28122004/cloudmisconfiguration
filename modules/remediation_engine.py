@@ -194,19 +194,105 @@ class RemediationEngine:
         
         return result
     
+    def _get_cli_steps(self, finding: Dict, action_info: Dict) -> list:
+        """Return realistic AWS CLI steps for each rule."""
+        rule_id = finding.get('rule_id', '')
+        resource_id = finding.get('resource_id', 'resource')
+        resource_name = finding.get('resource_name', resource_id)
+        region = finding.get('region', 'ap-south-1')
+
+        steps_map = {
+            "S3_PUBLIC_ACCESS": [
+                f"$ aws s3api get-bucket-acl --bucket {resource_name}",
+                "  Checking current ACL configuration...",
+                f"$ aws s3api put-public-access-block --bucket {resource_name} \\\n    --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,\\\n    BlockPublicPolicy=true,RestrictPublicBuckets=true",
+                f"  ✓ Public access blocked for bucket: {resource_name}",
+                f"$ aws s3api get-bucket-policy-status --bucket {resource_name}",
+                "  ✓ Verification complete — bucket is now PRIVATE"
+            ],
+            "S3_NO_ENCRYPTION": [
+                f"$ aws s3api get-bucket-encryption --bucket {resource_name}",
+                "  No encryption configuration found.",
+                f"$ aws s3api put-bucket-encryption --bucket {resource_name} \\\n    --server-side-encryption-configuration '{{\"Rules\":[{{\"ApplyServerSideEncryptionByDefault\":{{\"SSEAlgorithm\":\"AES256\"}}}}}]}}'",
+                f"  ✓ AES-256 encryption enabled for: {resource_name}",
+                "  ✓ All new objects will be encrypted automatically"
+            ],
+            "S3_NO_VERSIONING": [
+                f"$ aws s3api get-bucket-versioning --bucket {resource_name}",
+                "  Status: Suspended",
+                f"$ aws s3api put-bucket-versioning --bucket {resource_name} \\\n    --versioning-configuration Status=Enabled",
+                f"  ✓ Versioning enabled for: {resource_name}",
+                "  ✓ All future objects will have version history"
+            ],
+            "EC2_OPEN_SECURITY_GROUP": [
+                f"$ aws ec2 describe-security-groups --group-ids {resource_name} --region {region}",
+                "  Found: Inbound rule 0.0.0.0/0 on port 22 (SSH)",
+                f"$ aws ec2 revoke-security-group-ingress --group-id {resource_name} \\\n    --protocol tcp --port 22 --cidr 0.0.0.0/0 --region {region}",
+                "  ✓ Removed open SSH rule (0.0.0.0/0:22)",
+                f"$ aws ec2 authorize-security-group-ingress --group-id {resource_name} \\\n    --protocol tcp --port 22 --cidr 10.0.0.0/8 --region {region}",
+                "  ✓ Added restricted SSH rule (10.0.0.0/8 only)",
+                "  ✓ Security group hardened successfully"
+            ],
+            "RDS_PUBLIC_ACCESS": [
+                f"$ aws rds describe-db-instances --db-instance-identifier {resource_name} --region {region}",
+                "  PubliclyAccessible: true",
+                f"$ aws rds modify-db-instance --db-instance-identifier {resource_name} \\\n    --no-publicly-accessible --apply-immediately --region {region}",
+                "  Waiting for modification to apply...",
+                "  ✓ RDS instance is now PRIVATE",
+                "  ✓ Database no longer accessible from internet"
+            ],
+            "IAM_NO_MFA": [
+                f"$ aws iam list-mfa-devices --user-name {resource_name}",
+                "  MFADevices: []  (No MFA configured)",
+                f"$ aws iam create-virtual-mfa-device --virtual-mfa-device-name {resource_name}-mfa \\\n    --outfile /tmp/qr-code.png --bootstrap-method QRCodePNG",
+                "  ✓ Virtual MFA device created",
+                f"$ aws iam enable-mfa-device --user-name {resource_name} \\\n    --serial-number arn:aws:iam::123456789012:mfa/{resource_name}-mfa \\\n    --authentication-code-1 [CODE1] --authentication-code-2 [CODE2]",
+                f"  ✓ MFA enforcement policy applied to user: {resource_name}",
+                "  ✓ Email notification sent to user"
+            ],
+            "IAM_OLD_ACCESS_KEY": [
+                f"$ aws iam list-access-keys --user-name {resource_name}",
+                "  AccessKeyId: AKIAI...EXAMPLE  Status: Active  Created: 180+ days ago",
+                f"$ aws iam create-access-key --user-name {resource_name}",
+                "  ✓ New access key created: AKIANEWKEY...",
+                f"$ aws iam update-access-key --user-name {resource_name} \\\n    --access-key-id AKIAI...EXAMPLE --status Inactive",
+                "  ✓ Old key deactivated",
+                "  ⚠  Please update credentials in your application",
+                "  ✓ Key rotation complete"
+            ],
+            "CLOUDTRAIL_NO_VALIDATION": [
+                f"$ aws cloudtrail get-trail --name {resource_name} --region {region}",
+                "  LogFileValidationEnabled: false",
+                f"$ aws cloudtrail update-trail --name {resource_name} \\\n    --enable-log-file-validation --region {region}",
+                "  ✓ Log file validation enabled",
+                "  ✓ All future logs will have SHA-256 hash validation"
+            ]
+        }
+
+        return steps_map.get(rule_id, [
+            f"$ aws {finding.get('resource_type', 'resource').lower().replace('_', '-')} describe --id {resource_name}",
+            "  Analyzing current configuration...",
+            f"  Issue: {action_info.get('action', 'Remediation action')}",
+            f"$ aws iam simulate-principal-policy --action-names {rule_id} --resource-arns arn:aws:s3:::{resource_name}",
+            "  Applying security policy change...",
+            f"  ✓ {action_info.get('title', 'Fix')} applied successfully",
+            "  ✓ Configuration updated and verified"
+        ])
+
     def _simulate_remediation(self, finding: Dict, action_info: Dict) -> Dict[str, Any]:
-        """Simulate remediation in demo mode."""
-        # Simulate some processing time
-        time.sleep(0.5)
-        
+        """Simulate remediation in demo mode with realistic steps."""
+        steps = self._get_cli_steps(finding, action_info)
         return {
             'success': True,
             'mode': 'demo',
-            'message': f"✓ Successfully remediated (DEMO MODE): {action_info['title']}",
-            'details': f"Simulated: {action_info['action']}",
+            'message': f"✓ {action_info['title']} — Applied Successfully",
+            'details': action_info['action'],
             'resource_id': finding.get('resource_id'),
-            'rule_id': finding.get('rule_id')
+            'rule_id': finding.get('rule_id'),
+            'steps': steps,
+            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
         }
+
     
     def _execute_real_remediation(self, finding: Dict, action_info: Dict) -> Dict[str, Any]:
         """Execute real remediation using AWS boto3."""

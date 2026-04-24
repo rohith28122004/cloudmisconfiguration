@@ -193,49 +193,50 @@
 
     <!-- Remediation Modal -->
     <div id="remediationModal" class="modal">
-        <div class="modal-content glass-card">
+        <div class="modal-content glass-card" style="max-width:700px;width:95%">
             <div class="modal-header">
-                <h2>🔧 Auto-Remediation</h2>
+                <h2>🔧 Auto-Remediation Console</h2>
                 <button class="modal-close" onclick="closeRemediationModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Step 1: Info -->
                 <div id="remediationInfo">
                     <h3 id="remediationTitle"></h3>
-                    <p id="remediationDescription"></p>
+                    <p id="remediationDescription" style="color:var(--text-secondary);margin-bottom:1rem;"></p>
                     <div class="remediation-details">
-                        <div class="detail-row">
-                            <span class="label">Action:</span>
-                            <span id="remediationAction"></span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="label">Risk Level:</span>
-                            <span id="remediationRisk"></span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="label">Estimated Time:</span>
-                            <span id="remediationTime"></span>
-                        </div>
+                        <div class="detail-row"><span class="label">Action:</span><span id="remediationAction"></span></div>
+                        <div class="detail-row"><span class="label">Risk Level:</span><span id="remediationRisk"></span></div>
+                        <div class="detail-row"><span class="label">Est. Time:</span><span id="remediationTime"></span></div>
                     </div>
-                    <div class="warning-box">
-                        ⚠️ <strong>Demo Mode:</strong> This will simulate the fix. No actual changes will be made to
-                        your cloud resources.
+                    <div class="warning-box" style="margin-top:1rem;">
+                        ⚡ <strong>Simulated Execution</strong> — Real AWS CLI commands will be shown. No actual cloud changes are made in demo mode.
                     </div>
                 </div>
-                <div id="remediationProgress" style="display: none;">
-                    <div class="progress-spinner"></div>
-                    <p>Applying remediation...</p>
+
+                <!-- Step 2: Terminal -->
+                <div id="remediationProgress" style="display:none;">
+                    <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:1rem;font-family:'Courier New',monospace;font-size:0.8rem;min-height:220px;max-height:320px;overflow-y:auto;" id="terminalOutput">
+                        <div style="color:#58a6ff;margin-bottom:0.5rem;">CloudShield Remediation Console v2.0</div>
+                        <div style="color:#3fb950;margin-bottom:1rem;">Connected to: AWS Account 123456789012 | Region: ap-south-1</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.75rem;color:var(--text-secondary);font-size:0.85rem;">
+                        <div class="progress-spinner" style="width:16px;height:16px;border-width:2px;"></div>
+                        <span id="terminalStatusText">Initializing remediation...</span>
+                    </div>
                 </div>
-                <div id="remediationResult" style="display: none;">
+
+                <!-- Step 3: Result -->
+                <div id="remediationResult" style="display:none;">
                     <div id="resultIcon"></div>
                     <h3 id="resultMessage"></h3>
-                    <p id="resultDetails"></p>
+                    <p id="resultDetails" style="color:var(--text-secondary);"></p>
+                    <div id="resultTimestamp" style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;"></div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button id="cancelBtn" class="btn btn-secondary" onclick="closeRemediationModal()">Cancel</button>
-                <button id="confirmBtn" class="btn btn-primary" onclick="executeRemediation()">Fix This Issue</button>
-                <button id="closeBtn" class="btn btn-primary" onclick="closeRemediationModal()"
-                    style="display: none;">Close</button>
+                <button id="confirmBtn" class="btn btn-primary" onclick="executeRemediation()">⚡ Execute Fix</button>
+                <button id="closeBtn" class="btn btn-primary" onclick="closeRemediationModal()" style="display:none;">✓ Done</button>
             </div>
         </div>
     </div>
@@ -550,11 +551,45 @@
     }
 
     async function executeRemediation() {
-        // Show progress
+        // Show terminal
         document.getElementById('remediationInfo').style.display = 'none';
         document.getElementById('remediationProgress').style.display = 'block';
         document.getElementById('cancelBtn').style.display = 'none';
         document.getElementById('confirmBtn').style.display = 'none';
+
+        const terminal = document.getElementById('terminalOutput');
+        const statusText = document.getElementById('terminalStatusText');
+
+        // Reset terminal content
+        terminal.innerHTML = `
+            <div style="color:#58a6ff;margin-bottom:0.5rem;">CloudShield Remediation Console v2.0</div>
+            <div style="color:#3fb950;margin-bottom:1rem;">Connected to: AWS Account 123456789012 | Region: ap-south-1</div>
+            <div style="color:#8b949e;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+            <div style="color:#e6edf3;margin-top:0.5rem;">Executing: ${currentFinding.rule_name}</div>
+            <div style="color:#8b949e;margin-bottom:0.75rem;">Target: ${currentFinding.resource_name} (${currentFinding.resource_type})</div>`;
+
+        function appendLine(text, color = '#e6edf3') {
+            const line = document.createElement('div');
+            line.style.color = color;
+            line.style.whiteSpace = 'pre';
+            line.style.marginBottom = '2px';
+            line.textContent = text;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function typeLine(text, color = '#e6edf3', delay = 18) {
+            const line = document.createElement('div');
+            line.style.color = color;
+            line.style.whiteSpace = 'pre';
+            line.style.marginBottom = '2px';
+            terminal.appendChild(line);
+            for (const char of text) {
+                line.textContent += char;
+                terminal.scrollTop = terminal.scrollHeight;
+                await new Promise(r => setTimeout(r, delay));
+            }
+        }
 
         try {
             const response = await fetch('/api/remediate', {
@@ -562,8 +597,36 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ finding: currentFinding })
             });
-
             const result = await response.json();
+
+            // Animate the steps
+            const steps = result.steps || [`  ✓ ${result.message}`];
+            statusText.textContent = 'Running remediation steps...';
+
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                const isCLI = step.startsWith('$');
+                const isSuccess = step.includes('✓');
+                const isWarn = step.includes('⚠');
+
+                const color = isCLI ? '#79c0ff' : isSuccess ? '#3fb950' : isWarn ? '#e3b341' : '#8b949e';
+                const typeDelay = isCLI ? 12 : 4;
+
+                await typeLine(step, color, typeDelay);
+                await new Promise(r => setTimeout(r, isCLI ? 400 : 150));
+
+                // Update status text
+                if (i < steps.length - 1) {
+                    statusText.textContent = `Step ${i + 1}/${steps.length} complete...`;
+                }
+            }
+
+            await new Promise(r => setTimeout(r, 500));
+            appendLine('', '#e6edf3');
+            appendLine(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, '#30363d');
+            appendLine(`✅ REMEDIATION COMPLETE — ${result.timestamp || new Date().toLocaleString()}`, '#3fb950');
+
+            await new Promise(r => setTimeout(r, 800));
 
             // Show result
             document.getElementById('remediationProgress').style.display = 'none';
@@ -571,30 +634,31 @@
             document.getElementById('closeBtn').style.display = 'inline-block';
 
             if (result.success) {
-                document.getElementById('resultIcon').innerHTML = '<div class="success-icon">✅</div>';
-                document.getElementById('resultMessage').textContent = 'Remediation Successful!';
-                document.getElementById('resultDetails').textContent = result.message;
+                document.getElementById('resultIcon').innerHTML = '<div class="success-icon" style="font-size:3rem;text-align:center;margin-bottom:0.5rem;">✅</div>';
+                document.getElementById('resultMessage').textContent = result.message;
+                document.getElementById('resultDetails').textContent = result.details;
+                document.getElementById('resultTimestamp').textContent = `Completed: ${result.timestamp || new Date().toLocaleString()}`;
 
-                // Mark finding as fixed in the UI
+                // Mark as fixed in table
                 const row = document.querySelector(`tr[data-finding-index="${dashboardData.findings.indexOf(currentFinding)}"]`);
                 if (row) {
-                    const actionCell = row.querySelector('td:last-child');
-                    actionCell.innerHTML = '<span class="fixed-badge">✓ Fixed</span>';
+                    row.querySelector('td:last-child').innerHTML = '<span class="fixed-badge">✓ Fixed</span>';
                 }
             } else {
-                document.getElementById('resultIcon').innerHTML = '<div class="error-icon">❌</div>';
+                document.getElementById('resultIcon').innerHTML = '<div style="font-size:3rem;text-align:center;margin-bottom:0.5rem;">❌</div>';
                 document.getElementById('resultMessage').textContent = 'Remediation Failed';
                 document.getElementById('resultDetails').textContent = result.message || 'An error occurred';
             }
 
         } catch (error) {
             console.error('Remediation failed:', error);
+            appendLine(`ERROR: ${error.message}`, '#f85149');
             document.getElementById('remediationProgress').style.display = 'none';
             document.getElementById('remediationResult').style.display = 'block';
             document.getElementById('closeBtn').style.display = 'inline-block';
-            document.getElementById('resultIcon').innerHTML = '<div class="error-icon">❌</div>';
-            document.getElementById('resultMessage').textContent = 'Remediation Failed';
-            document.getElementById('resultDetails').textContent = 'Network error occurred';
+            document.getElementById('resultIcon').innerHTML = '<div style="font-size:3rem;text-align:center;">❌</div>';
+            document.getElementById('resultMessage').textContent = 'Connection Error';
+            document.getElementById('resultDetails').textContent = error.message;
         }
     }
 
