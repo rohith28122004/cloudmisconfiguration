@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Temp scan data (generated at runtime)
+/tmp/
+
+# Data directory (runtime generated)
+data/*.json
+
+# ML models (if too large)
+# ml/*.pkl
+# ml/*.joblib
+
+# Vercel
+.vercel/

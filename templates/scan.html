@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Scanning - Cloud Security Scanner{% endblock %}
+
+{% block content %}
+<div class="scan-container">
+    <div class="scan-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+    </div>
+
+    <div class="scan-card glass-card">
+        <div class="scan-header">
+            <div class="logo-small">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="M9 12l2 2 4-4" />
+                </svg>
+                <span>CloudShield</span>
+            </div>
+            <span class="demo-badge">Demo Mode</span>
+        </div>
+
+        <div class="scan-content">
+            <h1>Security Scan in Progress</h1>
+            <p class="scan-subtitle">Analyzing your cloud infrastructure for misconfigurations</p>
+
+            <div class="scan-animation">
+                <div class="scan-circle">
+                    <svg class="progress-ring" viewBox="0 0 120 120">
+                        <circle class="progress-ring-bg" cx="60" cy="60" r="54" />
+                        <circle class="progress-ring-fill" cx="60" cy="60" r="54" />
+                    </svg>
+                    <div class="scan-percentage" id="scanPercentage">0%</div>
+                </div>
+            </div>
+
+            <div class="scan-status" id="scanStatus">
+                <div class="status-icon">⏳</div>
+                <div class="status-text">Initializing scan...</div>
+            </div>
+
+            <div class="scan-steps">
+                <div class="step" id="step-connect">
+                    <div class="step-indicator"></div>
+                    <div class="step-info">
+                        <span class="step-name">Connect to Cloud</span>
+                        <span class="step-desc">Establishing secure connection</span>
+                    </div>
+                </div>
+                <div class="step" id="step-fetch">
+                    <div class="step-indicator"></div>
+                    <div class="step-info">
+                        <span class="step-name">Fetch Resources</span>
+                        <span class="step-desc">Discovering cloud resources</span>
+                    </div>
+                </div>
+                <div class="step" id="step-scan">
+                    <div class="step-indicator"></div>
+                    <div class="step-info">
+                        <span class="step-name">Security Scan</span>
+                        <span class="step-desc">Checking for misconfigurations</span>
+                    </div>
+                </div>
+                <div class="step" id="step-ml">
+                    <div class="step-indicator"></div>
+                    <div class="step-info">
+                        <span class="step-name">ML Risk Analysis</span>
+                        <span class="step-desc">Calculating context-aware risk scores</span>
+                    </div>
+                </div>
+                <div class="step" id="step-compliance">
+                    <div class="step-indicator"></div>
+                    <div class="step-info">
+                        <span class="step-name">Compliance Mapping</span>
+                        <span class="step-desc">Mapping to Indian regulations</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scan-stats" id="scanStats">
+                <div class="stat">
+                    <span class="stat-value" id="resourceCount">0</span>
+                    <span class="stat-label">Resources</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="findingCount">0</span>
+                    <span class="stat-label">Findings</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="ruleCount">27</span>
+                    <span class="stat-label">Security Rules</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const steps = ['connect', 'fetch', 'scan', 'ml', 'compliance'];
+    const statusMessages = {
+        'connecting': { text: 'Connecting to AWS...', step: 0, percent: 10 },
+        'fetching': { text: 'Fetching cloud resources...', step: 1, percent: 30 },
+        'scanning': { text: 'Running security checks...', step: 2, percent: 50 },
+        'analyzing': { text: 'Applying ML risk scoring...', step: 3, percent: 70 },
+        'compliance': { text: 'Mapping to Indian compliance...', step: 4, percent: 90 },
+        'complete': { text: 'Scan complete!', step: 5, percent: 100 }
+    };
+
+    let currentStep = -1;
+
+    function updateProgress(percent) {
+        const fill = document.querySelector('.progress-ring-fill');
+        const circumference = 2 * Math.PI * 54;
+        const offset = circumference - (percent / 100) * circumference;
+        fill.style.strokeDasharray = `${circumference} ${circumference}`;
+        fill.style.strokeDashoffset = offset;
+        document.getElementById('scanPercentage').textContent = `${percent}%`;
+    }
+
+    function updateStep(stepIndex) {
+        steps.forEach((step, index) => {
+            const el = document.getElementById(`step-${step}`);
+            el.classList.remove('active', 'complete');
+
+            if (index < stepIndex) {
+                el.classList.add('complete');
+            } else if (index === stepIndex) {
+                el.classList.add('active');
+            }
+        });
+    }
+
+    function updateStatus(status) {
+        const info = statusMessages[status];
+        if (info) {
+            document.querySelector('.status-text').textContent = info.text;
+            updateProgress(info.percent);
+            updateStep(info.step);
+
+            if (status === 'complete') {
+                document.querySelector('.status-icon').textContent = '✅';
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            }
+        }
+    }
+
+    async function startScan() {
+        try {
+            const response = await fetch('/api/start-scan', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                // Scan started, poll for status
+                pollStatus();
+            }
+        } catch (error) {
+            console.error('Scan error:', error);
+        }
+    }
+
+    async function pollStatus() {
+        try {
+            const response = await fetch('/api/scan-status');
+            const data = await response.json();
+
+            updateStatus(data.status);
+            document.getElementById('resourceCount').textContent = data.resources_count || 0;
+            document.getElementById('findingCount').textContent = data.findings_count || 0;
+
+            if (data.status !== 'complete') {
+                setTimeout(pollStatus, 500);
+            }
+        } catch (error) {
+            console.error('Status error:', error);
+        }
+    }
+
+    // Start scan on page load
+    window.addEventListener('load', () => {
+        setTimeout(startScan, 500);
+    });
+</script>
+{% endblock %}

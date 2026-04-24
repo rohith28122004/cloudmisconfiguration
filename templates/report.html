@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Report - Cloud Security Scanner{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header glass-card">
+        <div class="header-content">
+            <div class="logo-small">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="M9 12l2 2 4-4" />
+                </svg>
+                <span>CloudShield Security Report</span>
+            </div>
+            <div class="header-actions">
+                <button id="downloadPdf" class="btn btn-primary">
+                    📥 Download PDF
+                </button>
+                <a href="/dashboard" class="btn btn-secondary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportContent" class="report-content">
+        <div class="report-title-page glass-card">
+            <div class="title-content">
+                <h1>Cloud Security Assessment Report</h1>
+                <h2>ML-Based Risk Analysis with Indian Compliance</h2>
+                <div class="report-meta">
+                    <p><strong>Report Generated:</strong> <span id="reportDate"></span></p>
+                    <p><strong>Cloud Provider:</strong> <span id="reportProvider">AWS</span></p>
+                    <p><strong>Account:</strong> <span id="reportAccount">Demo</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section glass-card">
+            <h2>Executive Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-value" id="summaryResources">0</span>
+                    <span class="summary-label">Resources Scanned</span>
+                </div>
+                <div class="summary-item warning">
+                    <span class="summary-value" id="summaryFindings">0</span>
+                    <span class="summary-label">Issues Found</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="summaryRiskScore">0</span>
+                    <span class="summary-label">Average Risk Score</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="summaryCompliance">0%</span>
+                    <span class="summary-label">Average Compliance</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section glass-card">
+            <h2>Indian Compliance Status</h2>
+            <p>Assessment against Indian regulatory frameworks:</p>
+
+            <table class="compliance-table">
+                <thead>
+                    <tr>
+                        <th>Framework</th>
+                        <th>Compliance</th>
+                        <th>Status</th>
+                        <th>Controls Passed</th>
+                        <th>Maximum Penalty</th>
+                    </tr>
+                </thead>
+                <tbody id="complianceTableBody">
+                    <!-- Filled by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="report-section glass-card">
+            <h2>Risk Distribution</h2>
+            <div class="risk-bars">
+                <div class="risk-bar critical">
+                    <span class="risk-label">Critical</span>
+                    <div class="bar-container">
+                        <div class="bar" id="criticalBar"></div>
+                    </div>
+                    <span class="risk-count" id="criticalCount">0</span>
+                </div>
+                <div class="risk-bar high">
+                    <span class="risk-label">High</span>
+                    <div class="bar-container">
+                        <div class="bar" id="highBar"></div>
+                    </div>
+                    <span class="risk-count" id="highCount">0</span>
+                </div>
+                <div class="risk-bar medium">
+                    <span class="risk-label">Medium</span>
+                    <div class="bar-container">
+                        <div class="bar" id="mediumBar"></div>
+                    </div>
+                    <span class="risk-count" id="mediumCount">0</span>
+                </div>
+                <div class="risk-bar low">
+                    <span class="risk-label">Low</span>
+                    <div class="bar-container">
+                        <div class="bar" id="lowBar"></div>
+                    </div>
+                    <span class="risk-count" id="lowCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section glass-card">
+            <h2>Priority Actions Required</h2>
+            <div class="priority-list" id="priorityList">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <div class="report-section glass-card">
+            <h2>Top Risk Findings</h2>
+            <table class="findings-table">
+                <thead>
+                    <tr>
+                        <th>Risk Score</th>
+                        <th>Resource</th>
+                        <th>Issue</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody id="findingsTableBody">
+                    <!-- Filled by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="report-section glass-card">
+            <h2>Recommendations</h2>
+            <ul class="recommendations-list" id="recommendationsList">
+                <!-- Filled by JS -->
+            </ul>
+        </div>
+
+        <div class="report-footer">
+            <p>Generated by CloudShield - ML-Based Cloud Security Scanner</p>
+            <p>Indian Compliance Framework: RBI | DPDP Act 2023 | CERT-In | IT Act 2000</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadReport() {
+        try {
+            const response = await fetch('/api/export-report');
+            const data = await response.json();
+
+            // Header info
+            document.getElementById('reportDate').textContent = data.generated_at;
+            document.getElementById('reportProvider').textContent = data.cloud_info?.provider || 'AWS';
+            document.getElementById('reportAccount').textContent = data.cloud_info?.account_id || 'Demo';
+
+            // Summary
+            const summary = data.summary;
+            document.getElementById('summaryResources').textContent = summary.total_resources || 0;
+            document.getElementById('summaryFindings').textContent = summary.total_findings || 0;
+            document.getElementById('summaryRiskScore').textContent = summary.risk_distribution?.average_score || 0;
+            document.getElementById('summaryCompliance').textContent =
+                (summary.compliance_summary?.average_compliance || 0) + '%';
+
+            // Compliance table
+            const report = data.report;
+            const complianceHtml = Object.entries(report.frameworks || {}).map(([key, fw]) => `
+            <tr>
+                <td><strong>${fw.name}</strong></td>
+                <td>${fw.compliance}%</td>
+                <td class="status-${fw.status?.toLowerCase()}">${fw.status}</td>
+                <td>${fw.violations_count ? 'See details' : 'All passed'}</td>
+                <td>${fw.penalty}</td>
+            </tr>
+        `).join('');
+            document.getElementById('complianceTableBody').innerHTML = complianceHtml;
+
+            // Risk distribution bars
+            const risk = summary.risk_distribution || {};
+            const total = Math.max(1, (risk.critical || 0) + (risk.high || 0) + (risk.medium || 0) + (risk.low || 0));
+
+            document.getElementById('criticalBar').style.width = ((risk.critical || 0) / total * 100) + '%';
+            document.getElementById('highBar').style.width = ((risk.high || 0) / total * 100) + '%';
+            document.getElementById('mediumBar').style.width = ((risk.medium || 0) / total * 100) + '%';
+            document.getElementById('lowBar').style.width = ((risk.low || 0) / total * 100) + '%';
+
+            document.getElementById('criticalCount').textContent = risk.critical || 0;
+            document.getElementById('highCount').textContent = risk.high || 0;
+            document.getElementById('mediumCount').textContent = risk.medium || 0;
+            document.getElementById('lowCount').textContent = risk.low || 0;
+
+            // Priority actions
+            const priorityHtml = (report.priority_actions || []).map((action, i) => `
+            <div class="priority-item">
+                <span class="priority-number">${i + 1}</span>
+                <div class="priority-content">
+                    <div class="priority-action">${action.action}</div>
+                    <div class="priority-meta">
+                        <span class="priority-framework">${action.framework}</span>
+                        <span class="priority-resource">Resource: ${action.resource}</span>
+                        <span class="priority-severity severity-${action.severity?.toLowerCase()}">${action.severity}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+            document.getElementById('priorityList').innerHTML = priorityHtml || '<p>No priority actions required.</p>';
+
+            // Findings table
+            const findingsHtml = (data.findings || []).slice(0, 10).map(f => `
+            <tr>
+                <td><span class="score-badge score-${f.risk_level?.toLowerCase()}">${f.ml_risk_score}</span></td>
+                <td>
+                    <strong>${f.resource_name}</strong><br>
+                    <small>${f.resource_type}</small>
+                </td>
+                <td>${f.rule_name}</td>
+                <td>${f.category}</td>
+            </tr>
+        `).join('');
+            document.getElementById('findingsTableBody').innerHTML = findingsHtml;
+
+            // Recommendations
+            const recsHtml = (report.recommendations || []).map(rec => `
+            <li>${rec}</li>
+        `).join('');
+            document.getElementById('recommendationsList').innerHTML = recsHtml || '<li>No specific recommendations at this time.</li>';
+
+        } catch (error) {
+            console.error('Failed to load report:', error);
+        }
+    }
+
+    document.getElementById('downloadPdf').addEventListener('click', async function () {
+        this.textContent = '⏳ Generating PDF...';
+        this.disabled = true;
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('reportContent');
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#0f172a'
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            const imgWidth = 210;
+            const pageHeight = 297;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save('cloud-security-report.pdf');
+
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            alert('Failed to generate PDF. Please try again.');
+        }
+
+        this.textContent = '📥 Download PDF';
+        this.disabled = false;
+    });
+
+    window.addEventListener('load', loadReport);
+</script>
+{% endblock %}

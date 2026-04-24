@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Cloud Security Scanner{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <div class="login-card glass-card">
+        <div class="login-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M9 12l2 2 4-4" />
+                    </svg>
+                </div>
+                <h1>CloudShield</h1>
+            </div>
+            <p class="tagline">ML-Based Cloud Security Scanner</p>
+            <p class="subtitle">Indian Compliance Framework</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="login-tabs">
+            <button class="tab-btn active" data-tab="demo">Demo Mode</button>
+            <button class="tab-btn" data-tab="aws">AWS Login</button>
+            <button class="tab-btn" data-tab="upload">Upload Config</button>
+        </div>
+
+        <!-- Demo Mode Tab -->
+        <div id="demo-tab" class="tab-content active">
+            <div class="demo-notice">
+                <div class="notice-icon">🚀</div>
+                <div class="notice-text">
+                    <strong>Quick Demo</strong>
+                    <p>Scan 15 sample AWS resources with pre-configured misconfigurations</p>
+                </div>
+            </div>
+
+            <button type="button" id="demoBtn" class="btn btn-primary btn-glow btn-full">
+                <span class="btn-icon">▶️</span>
+                Start Demo Scan
+            </button>
+        </div>
+
+        <!-- AWS Login Tab -->
+        <div id="aws-tab" class="tab-content">
+            <div class="demo-notice">
+                <div class="notice-icon">🔐</div>
+                <div class="notice-text">
+                    <strong>Connect to AWS Account</strong>
+                    <p>Enter your AWS credentials to scan your real cloud resources</p>
+                </div>
+            </div>
+
+            <form id="awsForm">
+                <div class="form-group">
+                    <label for="awsAccessKey">AWS Access Key ID</label>
+                    <input type="text" id="awsAccessKey" name="awsAccessKey" placeholder="AKIAIOSFODNN7EXAMPLE"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="awsSecretKey">AWS Secret Access Key</label>
+                    <input type="password" id="awsSecretKey" name="awsSecretKey"
+                        placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="awsRegion">AWS Region</label>
+                    <select id="awsRegion" name="awsRegion" required>
+                        <option value="">Select Region</option>
+                        <option value="ap-south-1">Asia Pacific (Mumbai) - ap-south-1</option>
+                        <option value="us-east-1">US East (N. Virginia) - us-east-1</option>
+                        <option value="us-west-2">US West (Oregon) - us-west-2</option>
+                        <option value="eu-west-1">Europe (Ireland) - eu-west-1</option>
+                        <option value="ap-southeast-1">Asia Pacific (Singapore) - ap-southeast-1</option>
+                    </select>
+                </div>
+
+                <div class="aws-warning">
+                    <span class="warning-icon">⚠️</span>
+                    <span>Your credentials are stored securely and never shared</span>
+                </div>
+
+                <button type="submit" id="awsBtn" class="btn btn-primary btn-glow btn-full">
+                    <span class="btn-icon">🔗</span>
+                    Connect to AWS
+                </button>
+            </form>
+        </div>
+
+        <!-- Upload Config Tab -->
+        <div id="upload-tab" class="tab-content">
+            <div class="upload-info">
+                <div class="notice-icon">📁</div>
+                <div class="notice-text">
+                    <strong>Upload Your Configuration</strong>
+                    <p>Upload a JSON file with your cloud resources to scan</p>
+                </div>
+            </div>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📤</div>
+                    <p class="upload-text">Click to select your JSON file</p>
+                    <p class="upload-subtext">or drag and drop here</p>
+                </div>
+
+                <input type="file" id="configFile" name="configFile" accept=".json" style="display:none;">
+
+                <div class="file-selected" id="fileSelected" style="display: none;">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name" id="fileName"></span>
+                    <button type="button" class="file-remove" id="removeFile">✕</button>
+                </div>
+
+                <div class="upload-error" id="uploadError" style="display: none;"></div>
+
+                <button type="submit" id="uploadBtn" class="btn btn-primary btn-full" disabled>
+                    <span class="btn-icon">🔍</span>
+                    Scan Uploaded Config
+                </button>
+            </form>
+
+            <div class="sample-download">
+                <a href="/api/sample-config" download="sample-cloud-config.json" id="downloadSample">📥 Download sample
+                    config file</a>
+            </div>
+        </div>
+
+        <div class="compliance-badges">
+            <span class="badge">RBI</span>
+            <span class="badge">DPDP Act</span>
+            <span class="badge">CERT-In</span>
+            <span class="badge">IT Act</span>
+        </div>
+    </div>
+
+    <div class="features-panel glass-card">
+        <h2>Features</h2>
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-text">
+                    <strong>ML-Based Risk Scoring</strong>
+                    <p>Context-aware 0-100 risk scores</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🇮🇳</div>
+                <div class="feature-text">
+                    <strong>Indian Compliance</strong>
+                    <p>RBI, DPDP Act, CERT-In, IT Act</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">☁️</div>
+                <div class="feature-text">
+                    <strong>Multi-Resource Support</strong>
+                    <p>S3, EC2, RDS, IAM, Lambda & more</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-text">
+                    <strong>Detailed Reports</strong>
+                    <p>Export PDF with remediation steps</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="supported-resources">
+            <h3>Supported Resource Types</h3>
+            <div class="resource-types">
+                <span>S3_Bucket</span>
+                <span>EC2_Instance</span>
+                <span>RDS_Instance</span>
+                <span>IAM_User</span>
+                <span>Security_Group</span>
+                <span>Lambda_Function</span>
+                <span>KMS_Key</span>
+                <span>CloudTrail</span>
+                <span>Load_Balancer</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+        });
+    });
+
+    // Demo mode button
+    document.getElementById('demoBtn').addEventListener('click', async function () {
+        this.classList.add('loading');
+        this.innerHTML = '<span class="spinner"></span> Connecting...';
+
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ demo_mode: true })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = data.redirect;
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            this.classList.remove('loading');
+            this.innerHTML = '<span class="btn-icon">▶️</span> Start Demo Scan';
+        }
+    });
+
+    // AWS form submit
+    document.getElementById('awsForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const awsBtn = document.getElementById('awsBtn');
+        const accessKey = document.getElementById('awsAccessKey').value;
+        const secretKey = document.getElementById('awsSecretKey').value;
+        const region = document.getElementById('awsRegion').value;
+
+        awsBtn.disabled = true;
+        awsBtn.innerHTML = '<span class=\"spinner\"></span> Connecting to AWS...';
+
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    demo_mode: false,
+                    aws_access_key: accessKey,
+                    aws_secret_key: secretKey,
+                    aws_region: region
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                awsBtn.innerHTML = '<span class=\"btn-icon\">✅</span> Connected!';
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            } else {
+                awsBtn.disabled = false;
+                awsBtn.innerHTML = '<span class=\"btn-icon\">🔗</span> Connect to AWS';
+                alert('Connection failed: ' + (data.error || 'Invalid credentials'));
+            }
+        } catch (error) {
+            console.error('AWS login error:', error);
+            awsBtn.disabled = false;
+            awsBtn.innerHTML = '<span class=\"btn-icon\">🔗</span> Connect to AWS';
+            alert('Connection error: ' + error.message);
+        }
+    });
+
+    // File upload handling
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('configFile');
+    const fileSelected = document.getElementById('fileSelected');
+    const fileName = document.getElementById('fileName');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadError = document.getElementById('uploadError');
+    const uploadForm = document.getElementById('uploadForm');
+
+    // Click to select file
+    uploadArea.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', function (e) {
+        if (this.files.length > 0) {
+            handleFileSelect(this.files[0]);
+        }
+    });
+
+    function handleFileSelect(file) {
+        console.log('File selected:', file.name);
+
+        if (!file.name.endsWith('.json')) {
+            showError('Only JSON files are supported');
+            return;
+        }
+
+        // Create a new FileList-like object
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+
+        fileName.textContent = file.name;
+        uploadArea.style.display = 'none';
+        fileSelected.style.display = 'flex';
+        uploadBtn.disabled = false;
+        hideError();
+    }
+
+    document.getElementById('removeFile').addEventListener('click', function (e) {
+        e.preventDefault();
+        fileInput.value = '';
+        uploadArea.style.display = 'block';
+        fileSelected.style.display = 'none';
+        uploadBtn.disabled = true;
+    });
+
+    function showError(message) {
+        uploadError.textContent = '❌ ' + message;
+        uploadError.style.display = 'block';
+    }
+
+    function hideError() {
+        uploadError.style.display = 'none';
+    }
+
+    // Form submit
+    uploadForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showError('Please select a file first');
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<span class="spinner"></span> Uploading...';
+        hideError();
+
+        const formData = new FormData();
+        formData.append('configFile', fileInput.files[0]);
+
+        console.log('Uploading file:', fileInput.files[0].name);
+
+        try {
+            const response = await fetch('/api/upload-config', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            console.log('Upload response:', data);
+
+            if (data.success) {
+                uploadBtn.innerHTML = '<span class="btn-icon">✅</span> ' + data.resources_count + ' resources found!';
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            } else {
+                showError(data.error || 'Upload failed');
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<span class="btn-icon">🔍</span> Scan Uploaded Config';
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            showError('Failed to upload file: ' + error.message);
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<span class="btn-icon">🔍</span> Scan Uploaded Config';
+        }
+    });
+
+    // Download sample - make it work as a direct download
+    document.getElementById('downloadSample').addEventListener('click', async function (e) {
+        e.preventDefault();
+
+        try {
+            const response = await fetch('/api/sample-config');
+            const data = await response.json();
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sample-cloud-config.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download error:', error);
+        }
+    });
+</script>
+{% endblock %}

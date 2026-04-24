@@ -1,0 +1,671 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Cloud Security Scanner{% endblock %}
+
+{% block content %}
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="dashboard-container">
+    <!-- Mobile Top Bar -->
+    <div class="mobile-topbar">
+        <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="logo-small">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
+            </svg>
+            <span>CloudShield</span>
+        </div>
+        <span class="demo-badge">Demo</span>
+    </div>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-small">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="M9 12l2 2 4-4" />
+                </svg>
+                <span>CloudShield</span>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <a href="#overview" class="nav-item active" data-section="overview">
+                <span class="nav-icon">📊</span>
+                <span>Overview</span>
+            </a>
+            <a href="#findings" class="nav-item" data-section="findings">
+                <span class="nav-icon">🔍</span>
+                <span>Findings</span>
+            </a>
+            <a href="#compliance" class="nav-item" data-section="compliance">
+                <span class="nav-icon">📋</span>
+                <span>Compliance</span>
+            </a>
+            <a href="#resources" class="nav-item" data-section="resources">
+                <span class="nav-icon">☁️</span>
+                <span>Resources</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="/report" class="btn btn-export">
+                <span>📄</span> Export Report
+            </a>
+            <a href="/" class="nav-item">
+                <span class="nav-icon">🔄</span>
+                <span>New Scan</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>Security Dashboard</h1>
+                <div class="cloud-info">
+                    <span class="provider-badge" id="providerBadge">AWS</span>
+                    <span class="account-id" id="accountId">Account: Loading...</span>
+                    <span class="demo-badge">Demo Mode</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="scan-time" id="scanTime">Last scan: Just now</span>
+            </div>
+        </header>
+
+        <!-- Overview Section -->
+        <section id="overview" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card glass-card gradient-blue">
+                    <div class="stat-icon">☁️</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalResources">0</span>
+                        <span class="stat-label">Total Resources</span>
+                    </div>
+                </div>
+                <div class="stat-card glass-card gradient-red">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalFindings">0</span>
+                        <span class="stat-label">Issues Found</span>
+                    </div>
+                </div>
+                <div class="stat-card glass-card gradient-orange">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="avgRiskScore">0</span>
+                        <span class="stat-label">Avg Risk Score</span>
+                    </div>
+                </div>
+                <div class="stat-card glass-card gradient-green">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="avgCompliance">0%</span>
+                        <span class="stat-label">Avg Compliance</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card glass-card">
+                    <h3>Risk Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card glass-card">
+                    <h3>Indian Compliance Status</h3>
+                    <div class="chart-container">
+                        <canvas id="complianceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="compliance-cards">
+                <h2>Compliance Frameworks</h2>
+                <div class="compliance-grid" id="complianceGrid">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <div class="top-findings">
+                <h2>Top Risk Findings</h2>
+                <div class="findings-list" id="topFindings">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Findings Section -->
+        <section id="findings" class="section">
+            <div class="section-header">
+                <h2>All Security Findings</h2>
+                <div class="filter-bar">
+                    <select id="severityFilter" class="filter-select">
+                        <option value="all">All Severities</option>
+                        <option value="CRITICAL">Critical</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="all">All Categories</option>
+                    </select>
+                </div>
+            </div>
+            <div class="findings-table-container glass-card">
+                <table class="findings-table">
+                    <thead>
+                        <tr>
+                            <th>Risk Score</th>
+                            <th>Resource</th>
+                            <th>Issue</th>
+                            <th>Category</th>
+                            <th>Severity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="findingsTableBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Compliance Section -->
+        <section id="compliance" class="section">
+            <h2>Indian Compliance Details</h2>
+            <div class="compliance-details" id="complianceDetails">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="resources" class="section">
+            <h2>Scanned Resources</h2>
+            <div class="resources-grid" id="resourcesGrid">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Remediation Modal -->
+    <div id="remediationModal" class="modal">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h2>🔧 Auto-Remediation</h2>
+                <button class="modal-close" onclick="closeRemediationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="remediationInfo">
+                    <h3 id="remediationTitle"></h3>
+                    <p id="remediationDescription"></p>
+                    <div class="remediation-details">
+                        <div class="detail-row">
+                            <span class="label">Action:</span>
+                            <span id="remediationAction"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Risk Level:</span>
+                            <span id="remediationRisk"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Estimated Time:</span>
+                            <span id="remediationTime"></span>
+                        </div>
+                    </div>
+                    <div class="warning-box">
+                        ⚠️ <strong>Demo Mode:</strong> This will simulate the fix. No actual changes will be made to
+                        your cloud resources.
+                    </div>
+                </div>
+                <div id="remediationProgress" style="display: none;">
+                    <div class="progress-spinner"></div>
+                    <p>Applying remediation...</p>
+                </div>
+                <div id="remediationResult" style="display: none;">
+                    <div id="resultIcon"></div>
+                    <h3 id="resultMessage"></h3>
+                    <p id="resultDetails"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelBtn" class="btn btn-secondary" onclick="closeRemediationModal()">Cancel</button>
+                <button id="confirmBtn" class="btn btn-primary" onclick="executeRemediation()">Fix This Issue</button>
+                <button id="closeBtn" class="btn btn-primary" onclick="closeRemediationModal()"
+                    style="display: none;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let dashboardData = null;
+
+    // Navigation
+    document.querySelectorAll('.nav-item[data-section]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = item.dataset.section;
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+            item.classList.add('active');
+            document.getElementById(section).classList.add('active');
+        });
+    });
+
+    async function loadDashboard() {
+        try {
+            const response = await fetch('/api/dashboard-data');
+            dashboardData = await response.json();
+
+            updateStats();
+            createCharts();
+            renderFindings();
+            renderCompliance();
+            renderResources();
+        } catch (error) {
+            console.error('Failed to load dashboard:', error);
+        }
+    }
+
+    function updateStats() {
+        const summary = dashboardData.summary;
+
+        document.getElementById('totalResources').textContent = summary.total_resources || 0;
+        document.getElementById('totalFindings').textContent = summary.total_findings || 0;
+        document.getElementById('avgRiskScore').textContent = summary.risk_distribution?.average_score || 0;
+        document.getElementById('avgCompliance').textContent =
+            (summary.compliance_summary?.average_compliance || 0) + '%';
+
+        const cloudInfo = summary.cloud_info || {};
+        document.getElementById('providerBadge').textContent = cloudInfo.provider || 'AWS';
+        document.getElementById('accountId').textContent =
+            'Account: ' + (cloudInfo.account_id || 'Demo');
+    }
+
+    function createCharts() {
+        // Risk Distribution Chart
+        const riskDist = dashboardData.summary.risk_distribution || {};
+        const riskCtx = document.getElementById('riskChart').getContext('2d');
+
+        new Chart(riskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Critical', 'High', 'Medium', 'Low'],
+                datasets: [{
+                    data: [
+                        riskDist.critical || 0,
+                        riskDist.high || 0,
+                        riskDist.medium || 0,
+                        riskDist.low || 0
+                    ],
+                    backgroundColor: [
+                        '#ef4444',
+                        '#f97316',
+                        '#eab308',
+                        '#22c55e'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#e2e8f0', padding: 15 }
+                    }
+                }
+            }
+        });
+
+        // Compliance Chart
+        const compliance = dashboardData.compliance || {};
+        const complianceCtx = document.getElementById('complianceChart').getContext('2d');
+
+        const frameworks = Object.keys(compliance);
+        const percentages = frameworks.map(f => compliance[f].compliance_percentage || 0);
+
+        new Chart(complianceCtx, {
+            type: 'bar',
+            data: {
+                labels: frameworks.map(f => compliance[f].framework_name || f),
+                datasets: [{
+                    label: 'Compliance %',
+                    data: percentages,
+                    backgroundColor: percentages.map(p =>
+                        p >= 80 ? '#22c55e' : p >= 60 ? '#eab308' : '#ef4444'
+                    ),
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Compliance cards
+        const grid = document.getElementById('complianceGrid');
+        grid.innerHTML = frameworks.map(f => {
+            const data = compliance[f];
+            const pct = data.compliance_percentage || 0;
+            const statusClass = pct >= 80 ? 'status-good' : pct >= 60 ? 'status-warning' : 'status-bad';
+
+            return `
+            <div class="compliance-framework-card glass-card">
+                <div class="framework-header">
+                    <span class="framework-name">${data.framework_name || f}</span>
+                    <span class="framework-status ${statusClass}">${data.status || 'Unknown'}</span>
+                </div>
+                <div class="framework-score">
+                    <div class="score-circle ${statusClass}">
+                        <span class="score-value">${pct}%</span>
+                    </div>
+                </div>
+                <div class="framework-details">
+                    <div class="detail-row">
+                        <span>Controls Passed</span>
+                        <span>${data.compliant_controls || 0}/${data.total_controls || 0}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Violations</span>
+                        <span class="violation-count">${data.violations?.length || 0}</span>
+                    </div>
+                    <div class="detail-row penalty">
+                        <span>Max Penalty</span>
+                        <span>${data.penalty || 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    function renderFindings() {
+        const findings = dashboardData.findings || [];
+
+        // Top findings
+        const topHtml = findings.slice(0, 5).map(f => `
+        <div class="finding-card glass-card">
+            <div class="finding-score score-${f.risk_level?.toLowerCase()}">${f.ml_risk_score}</div>
+            <div class="finding-info">
+                <div class="finding-title">${f.rule_name}</div>
+                <div class="finding-resource">${f.resource_name} (${f.resource_type})</div>
+                <div class="finding-meta">
+                    <span class="category-tag">${f.category}</span>
+                    <span class="severity-tag severity-${f.severity?.toLowerCase()}">${f.severity}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+        document.getElementById('topFindings').innerHTML = topHtml;
+
+        // Full table with Fix This button
+        const tableHtml = findings.map((f, index) => `
+        <tr data-finding-index="${index}">
+            <td>
+                <div class="score-badge score-${f.risk_level?.toLowerCase()}">${f.ml_risk_score}</div>
+            </td>
+            <td>
+                <div class="resource-cell">
+                    <span class="resource-name">${f.resource_name}</span>
+                    <span class="resource-type">${f.resource_type}</span>
+                </div>
+            </td>
+            <td>${f.rule_name}</td>
+            <td><span class="category-tag">${f.category}</span></td>
+            <td><span class="severity-tag severity-${f.severity?.toLowerCase()}">${f.severity}</span></td>
+            <td>
+                <button class="btn-fix" onclick="openRemediationModal(${index})" title="Auto-fix this issue">
+                    🔧 Fix This
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
+        document.getElementById('findingsTableBody').innerHTML = tableHtml;
+
+        // Populate category filter
+        const categories = [...new Set(findings.map(f => f.category))];
+        const categoryFilter = document.getElementById('categoryFilter');
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            categoryFilter.appendChild(opt);
+        });
+    }
+
+    // Remediation Modal Functions
+    let currentFinding = null;
+    let currentRemediationAction = null;
+
+    async function openRemediationModal(findingIndex) {
+        currentFinding = dashboardData.findings[findingIndex];
+
+        // Get remediation info
+        try {
+            const response = await fetch('/api/remediation/info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rule_id: currentFinding.rule_id })
+            });
+
+            const data = await response.json();
+
+            if (!data.success || !data.remediable) {
+                alert('This issue cannot be automatically remediated. Please fix it manually.');
+                return;
+            }
+
+            currentRemediationAction = data.action;
+
+            // Populate modal
+            document.getElementById('remediationTitle').textContent = data.action.title;
+            document.getElementById('remediationDescription').textContent = data.action.description;
+            document.getElementById('remediationAction').textContent = data.action.action;
+            document.getElementById('remediationRisk').textContent = data.action.risk_level.toUpperCase();
+            document.getElementById('remediationTime').textContent = data.action.estimated_time;
+
+            // Show modal
+            document.getElementById('remediationModal').style.display = 'flex';
+            document.getElementById('remediationInfo').style.display = 'block';
+            document.getElementById('remediationProgress').style.display = 'none';
+            document.getElementById('remediationResult').style.display = 'none';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            document.getElementById('confirmBtn').style.display = 'inline-block';
+            document.getElementById('closeBtn').style.display = 'none';
+
+        } catch (error) {
+            console.error('Failed to get remediation info:', error);
+            alert('Failed to load remediation information');
+        }
+    }
+
+    async function executeRemediation() {
+        // Show progress
+        document.getElementById('remediationInfo').style.display = 'none';
+        document.getElementById('remediationProgress').style.display = 'block';
+        document.getElementById('cancelBtn').style.display = 'none';
+        document.getElementById('confirmBtn').style.display = 'none';
+
+        try {
+            const response = await fetch('/api/remediate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ finding: currentFinding })
+            });
+
+            const result = await response.json();
+
+            // Show result
+            document.getElementById('remediationProgress').style.display = 'none';
+            document.getElementById('remediationResult').style.display = 'block';
+            document.getElementById('closeBtn').style.display = 'inline-block';
+
+            if (result.success) {
+                document.getElementById('resultIcon').innerHTML = '<div class="success-icon">✅</div>';
+                document.getElementById('resultMessage').textContent = 'Remediation Successful!';
+                document.getElementById('resultDetails').textContent = result.message;
+
+                // Mark finding as fixed in the UI
+                const row = document.querySelector(`tr[data-finding-index="${dashboardData.findings.indexOf(currentFinding)}"]`);
+                if (row) {
+                    const actionCell = row.querySelector('td:last-child');
+                    actionCell.innerHTML = '<span class="fixed-badge">✓ Fixed</span>';
+                }
+            } else {
+                document.getElementById('resultIcon').innerHTML = '<div class="error-icon">❌</div>';
+                document.getElementById('resultMessage').textContent = 'Remediation Failed';
+                document.getElementById('resultDetails').textContent = result.message || 'An error occurred';
+            }
+
+        } catch (error) {
+            console.error('Remediation failed:', error);
+            document.getElementById('remediationProgress').style.display = 'none';
+            document.getElementById('remediationResult').style.display = 'block';
+            document.getElementById('closeBtn').style.display = 'inline-block';
+            document.getElementById('resultIcon').innerHTML = '<div class="error-icon">❌</div>';
+            document.getElementById('resultMessage').textContent = 'Remediation Failed';
+            document.getElementById('resultDetails').textContent = 'Network error occurred';
+        }
+    }
+
+    function closeRemediationModal() {
+        document.getElementById('remediationModal').style.display = 'none';
+        currentFinding = null;
+        currentRemediationAction = null;
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function (event) {
+        const modal = document.getElementById('remediationModal');
+        if (event.target === modal) {
+            closeRemediationModal();
+        }
+    }
+
+    function renderCompliance() {
+        const compliance = dashboardData.compliance || {};
+
+        const html = Object.entries(compliance).map(([key, data]) => `
+        <div class="compliance-detail-card glass-card">
+            <div class="detail-header">
+                <h3>${data.framework_name}</h3>
+                <span class="compliance-pct ${data.compliance_percentage >= 70 ? 'good' : 'bad'}">
+                    ${data.compliance_percentage}%
+                </span>
+            </div>
+            <p class="framework-fullname">${data.full_name}</p>
+            <p class="framework-penalty">⚠️ ${data.penalty}</p>
+            
+            <div class="violations-list">
+                <h4>Violations (${data.violations?.length || 0})</h4>
+                ${(data.violations || []).slice(0, 5).map(v => `
+                    <div class="violation-item">
+                        <div class="violation-clause">${v.clause}</div>
+                        <div class="violation-req">${v.requirement}</div>
+                        <div class="violation-finding">
+                            Issue: ${v.finding?.rule_name || 'Unknown'}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+
+        document.getElementById('complianceDetails').innerHTML = html;
+    }
+
+    function renderResources() {
+        const resources = dashboardData.resources || [];
+
+        const html = resources.map(r => {
+            const issueCount = dashboardData.findings.filter(f => f.resource_id === r.id).length;
+            const statusClass = issueCount === 0 ? 'secure' : issueCount <= 2 ? 'warning' : 'critical';
+
+            return `
+            <div class="resource-card glass-card ${statusClass}">
+                <div class="resource-icon">${getResourceIcon(r.type)}</div>
+                <div class="resource-info">
+                    <div class="resource-name">${r.name}</div>
+                    <div class="resource-type">${r.type}</div>
+                    <div class="resource-region">📍 ${r.region}</div>
+                </div>
+                <div class="resource-status">
+                    <span class="issue-count">${issueCount} issues</span>
+                </div>
+            </div>
+        `;
+        }).join('');
+
+        document.getElementById('resourcesGrid').innerHTML = html;
+    }
+
+    function getResourceIcon(type) {
+        const icons = {
+            'S3_Bucket': '🪣',
+            'EC2_Instance': '💻',
+            'RDS_Instance': '🗄️',
+            'IAM_User': '👤',
+            'Security_Group': '🛡️',
+            'Lambda_Function': 'λ',
+            'KMS_Key': '🔑',
+            'CloudTrail': '📝',
+            'Load_Balancer': '⚖️'
+        };
+        return icons[type] || '☁️';
+    }
+
+    // Load dashboard on page load
+    window.addEventListener('load', loadDashboard);
+
+    // ── Mobile Sidebar ──
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const btn = document.getElementById('hamburgerBtn');
+        sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('active');
+        btn.classList.toggle('open');
+    }
+
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('mobile-open');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+        document.getElementById('hamburgerBtn').classList.remove('open');
+    }
+
+    // Close sidebar when a nav item is clicked on mobile
+    document.querySelectorAll('.nav-item[data-section]').forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+</script>
+{% endblock %}

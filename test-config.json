@@ -1,0 +1,235 @@
+{
+  "cloud_provider": "AWS",
+  "account_id": "123456789012",
+  "scan_timestamp": "2026-01-19T10:12:00Z",
+  "resources": [
+    {
+      "id": "s3-public-pii-bucket",
+      "type": "S3_Bucket",
+      "name": "customer-data-prod",
+      "region": "ap-south-1",
+      "created_date": "2024-06-15",
+      "properties": {
+        "public_access": true,
+        "encryption": false,
+        "versioning": false,
+        "logging": false,
+        "data_classification": "PII",
+        "contains_financial_data": true,
+        "days_public": 45
+      }
+    },
+    {
+      "id": "s3-encrypted-private",
+      "type": "S3_Bucket",
+      "name": "backup-storage-secure",
+      "region": "ap-south-1",
+      "created_date": "2025-01-01",
+      "properties": {
+        "public_access": false,
+        "encryption": true,
+        "versioning": true,
+        "logging": true,
+        "data_classification": "Internal",
+        "contains_financial_data": false,
+        "days_public": 0
+      }
+    },
+    {
+      "id": "ec2-exposed-instance",
+      "type": "EC2_Instance",
+      "name": "web-server-01",
+      "region": "ap-south-1",
+      "created_date": "2024-08-20",
+      "properties": {
+        "public_ip": true,
+        "security_group_open": true,
+        "imdsv2_enforced": false,
+        "ebs_encryption": false,
+        "monitoring": false,
+        "instance_type": "t3.xlarge",
+        "open_ports": [22, 80, 443, 3306, 5432]
+      }
+    },
+    {
+      "id": "ec2-secure-instance",
+      "type": "EC2_Instance",
+      "name": "app-server-02",
+      "region": "us-east-1",
+      "created_date": "2025-12-10",
+      "properties": {
+        "public_ip": false,
+        "security_group_open": false,
+        "imdsv2_enforced": true,
+        "ebs_encryption": true,
+        "monitoring": true,
+        "instance_type": "t3.medium",
+        "open_ports": [443]
+      }
+    },
+    {
+      "id": "rds-unencrypted-db",
+      "type": "RDS_Database",
+      "name": "production-mysql",
+      "region": "ap-south-1",
+      "created_date": "2024-03-10",
+      "properties": {
+        "publicly_accessible": true,
+        "encryption": false,
+        "backup_enabled": false,
+        "multi_az": false,
+        "auto_minor_version_upgrade": false,
+        "deletion_protection": false,
+        "engine": "mysql",
+        "engine_version": "5.7.40"
+      }
+    },
+    {
+      "id": "rds-secure-db",
+      "type": "RDS_Database",
+      "name": "analytics-postgres",
+      "region": "eu-west-1",
+      "created_date": "2025-11-05",
+      "properties": {
+        "publicly_accessible": false,
+        "encryption": true,
+        "backup_enabled": true,
+        "multi_az": true,
+        "auto_minor_version_upgrade": true,
+        "deletion_protection": true,
+        "engine": "postgres",
+        "engine_version": "15.4"
+      }
+    },
+    {
+      "id": "iam-overprivileged-user",
+      "type": "IAM_User",
+      "name": "developer-admin",
+      "region": "global",
+      "created_date": "2023-05-20",
+      "properties": {
+        "has_admin_policy": true,
+        "mfa_enabled": false,
+        "access_keys_rotated": false,
+        "unused_days": 120,
+        "password_age_days": 365,
+        "console_access": true
+      }
+    },
+    {
+      "id": "iam-secure-user",
+      "type": "IAM_User",
+      "name": "ops-user",
+      "region": "global",
+      "created_date": "2025-09-15",
+      "properties": {
+        "has_admin_policy": false,
+        "mfa_enabled": true,
+        "access_keys_rotated": true,
+        "unused_days": 5,
+        "password_age_days": 30,
+        "console_access": true
+      }
+    },
+    {
+      "id": "lambda-public-function",
+      "type": "Lambda_Function",
+      "name": "data-processor",
+      "region": "ap-south-1",
+      "created_date": "2024-07-12",
+      "properties": {
+        "public_access": true,
+        "vpc_enabled": false,
+        "environment_vars_encrypted": false,
+        "tracing_enabled": false,
+        "reserved_concurrency": 0,
+        "runtime": "python3.8"
+      }
+    },
+    {
+      "id": "lambda-secure-function",
+      "type": "Lambda_Function",
+      "name": "payment-handler",
+      "region": "us-east-1",
+      "created_date": "2025-10-20",
+      "properties": {
+        "public_access": false,
+        "vpc_enabled": true,
+        "environment_vars_encrypted": true,
+        "tracing_enabled": true,
+        "reserved_concurrency": 100,
+        "runtime": "python3.11"
+      }
+    },
+    {
+      "id": "cloudtrail-disabled",
+      "type": "CloudTrail",
+      "name": "audit-trail",
+      "region": "ap-south-1",
+      "created_date": "2024-01-15",
+      "properties": {
+        "enabled": false,
+        "log_file_validation": false,
+        "multi_region": false,
+        "s3_bucket_logging": false,
+        "kms_encryption": false
+      }
+    },
+    {
+      "id": "security-group-open",
+      "type": "Security_Group",
+      "name": "default-sg",
+      "region": "ap-south-1",
+      "created_date": "2023-12-01",
+      "properties": {
+        "allows_all_inbound": true,
+        "allows_ssh_from_internet": true,
+        "allows_rdp_from_internet": true,
+        "egress_unrestricted": true,
+        "open_ports": [0, 22, 3389, 1433, 3306, 5432, 6379, 27017]
+      }
+    },
+    {
+      "id": "kms-key-no-rotation",
+      "type": "KMS_Key",
+      "name": "data-encryption-key",
+      "region": "ap-south-1",
+      "created_date": "2023-08-10",
+      "properties": {
+        "rotation_enabled": false,
+        "key_age_days": 520,
+        "deletion_pending": false,
+        "grants_count": 15,
+        "cross_account_access": true
+      }
+    },
+    {
+      "id": "ebs-unencrypted-volume",
+      "type": "EBS_Volume",
+      "name": "data-volume-01",
+      "region": "ap-south-1",
+      "created_date": "2024-04-18",
+      "properties": {
+        "encrypted": false,
+        "snapshot_exists": false,
+        "attached": true,
+        "size_gb": 500,
+        "volume_type": "gp2",
+        "delete_on_termination": false
+      }
+    },
+    {
+      "id": "vpc-flow-logs-disabled",
+      "type": "VPC",
+      "name": "production-vpc",
+      "region": "ap-south-1",
+      "created_date": "2023-11-05",
+      "properties": {
+        "flow_logs_enabled": false,
+        "default_security_group_restricts_traffic": false,
+        "network_acl_allows_all": true,
+        "cidr_block": "10.0.0.0/16"
+      }
+    }
+  ]
+}
